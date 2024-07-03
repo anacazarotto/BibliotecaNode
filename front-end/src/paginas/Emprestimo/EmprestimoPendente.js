@@ -6,16 +6,18 @@ import axios from "axios";
 
 export default function EmprestimoPendente() {
     const [dados, setDados] = useState([]);
+    const [filtroPessoa, setFiltroPessoa] = useState('');
 
     const listar = async () => {
         const { data } = await axios.get('http://localhost:4000/emprestimo-pendentes');
         const livrosComInfoRelacionada = await Promise.all(data.map(async emprestimo => {
-            //const { data: data_pessoa } = await axios.get(`http://localhost:4000/pessoa/${emprestimo.idpessoa}`);
-            //const { data: data_livro } = await axios.get(`http://localhost:4000/livro/${emprestimo.idlivro}`);
+            // Descomente estas linhas se precisar de mais detalhes do livro e da pessoa
+            // const { data: data_pessoa } = await axios.get(`http://localhost:4000/pessoa/${emprestimo.idpessoa}`);
+            // const { data: data_livro } = await axios.get(`http://localhost:4000/livro/${emprestimo.idlivro}`);
             return {
                 ...emprestimo,
-                //pessoa: data_pessoa,
-                //livro: data_livro
+                // pessoa: data_pessoa,
+                // livro: data_livro
             };
         }));
         setDados(livrosComInfoRelacionada);
@@ -35,11 +37,25 @@ export default function EmprestimoPendente() {
         }
     };
 
+    // Filtrar dados com base no filtro de pessoa
+    const dadosFiltrados = dados.filter(d => {
+        return d.pessoa && d.pessoa.toLowerCase().includes(filtroPessoa.toLowerCase());
+    });
+
     return (
         <>
-            <TituloListagem titulo="Listagem de emprestimos pendentes"
-                subtitulo="Neste local você gerencia todos os emprestimos da biblioteca pendentes."
-                 />
+            <TituloListagem
+                titulo="Listagem de Empréstimos Pendentes"
+                subtitulo="Neste local você gerencia todos os empréstimos da biblioteca pendentes."
+            />
+
+            <input
+                type="text"
+                placeholder="Filtrar por pessoa"
+                value={filtroPessoa}
+                onChange={(e) => setFiltroPessoa(e.target.value)}
+                className="form-control mb-3"
+            />
 
             <Table>
                 <thead>
@@ -48,17 +64,17 @@ export default function EmprestimoPendente() {
                         <th>Código</th>
                         <th>Livro</th>
                         <th>Pessoa</th>
-                        <th>Emprestimo</th>
+                        <th>Empréstimo</th>
                         <th>Vencimento</th>
                         <th>Atrasado</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {dados.map((d, i) => (
+                    {dadosFiltrados.map((d, i) => (
                         <tr key={i}>
                             <td>
-                                <button 
-                                    className='btn btn-primary' 
+                                <button
+                                    className='btn btn-primary'
                                     onClick={() => devolverLivro(d.idemprestimo, d.idlivro)}
                                 >
                                     Devolver
